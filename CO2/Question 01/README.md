@@ -1,5 +1,6 @@
-// Precedence, Associativity and the Discount Bug 
-// PROGRAM CODE Q1 
+/* Precedence, Associativity and the Discount Bug 
+PROGRAM CODE Q1 */
+
 #include <stdio.h> 
  
 int main(void) 
