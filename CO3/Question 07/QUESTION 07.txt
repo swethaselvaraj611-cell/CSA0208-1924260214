@@ -1,0 +1,118 @@
+#include <stdio.h>
+#include <time.h>
+
+#define MAX_CANDIDATES 12
+#define MAX_VOTES 500000
+
+typedef struct {
+    int candidate;
+    int votes;
+} Result;
+
+int count_votes(const int votes[], int n, int candidates,
+                int count[], int *invalid)
+{
+    int valid = 0;
+    *invalid = 0;
+
+    for (int i = 0; i <= candidates; i++)
+        count[i] = 0;
+
+    for (int i = 0; i < n; i++) {
+        if (votes[i] >= 1 && votes[i] <= candidates) {
+            count[votes[i]]++;
+            valid++;
+        } else {
+            (*invalid)++;
+        }
+    }
+    return valid;
+}
+
+void sort_results(Result r[], int n)
+{
+    for (int i = 1; i < n; i++) {
+        Result key = r[i];
+        int j = i - 1;
+
+        while (j >= 0 &&
+               (r[j].votes < key.votes ||
+                (r[j].votes == key.votes &&
+                 r[j].candidate > key.candidate))) {
+            r[j + 1] = r[j];
+            j--;
+        }
+        r[j + 1] = key;
+    }
+}
+
+void show_election(const int votes[], int n, int candidates)
+{
+    int count[MAX_CANDIDATES + 1], invalid;
+    int valid = count_votes(votes, n, candidates, count, &invalid);
+    Result r[MAX_CANDIDATES];
+
+    for (int i = 0; i < candidates; i++) {
+        r[i].candidate = i + 1;
+        r[i].votes = count[i + 1];
+    }
+
+    sort_results(r, candidates);
+
+    printf("Total entries: %d\n", n);
+    printf("Valid votes: %d\n", valid);
+    printf("Invalid votes: %d\n", invalid);
+    printf("Candidate results (descending):\n");
+
+    for (int i = 0; i < candidates; i++)
+        printf("Candidate %d: %d votes\n",
+               r[i].candidate, r[i].votes);
+
+    printf("Winner(s): ");
+    int maximum = r[0].votes;
+    int winners = 0;
+
+    for (int i = 0; i < candidates; i++) {
+        if (r[i].votes == maximum) {
+            printf("%d ", r[i].candidate);
+            winners++;
+        }
+    }
+
+    if (winners > 1)
+        printf("(Tie)\n");
+    else
+        printf("(Winner)\n");
+}
+
+int main(void)
+{
+    /* Includes invalid values 0, -1 and 5 for four candidates.
+       Candidates 1 and 2 are tied. */
+    int sample[] = {1, 2, 1, 3, 2, 4, 0, -1, 5, 3, 1, 2};
+    int n = sizeof(sample) / sizeof(sample[0]);
+
+    show_election(sample, n, 4);
+
+    /* Performance test for 5,000 and 500,000 votes. */
+    static int largeVotes[MAX_VOTES];
+    int count[MAX_CANDIDATES + 1], invalid;
+
+    for (int i = 0; i < MAX_VOTES; i++)
+        largeVotes[i] = (i % 12) + 1;
+
+    int sizes[] = {5000, 500000};
+    for (int s = 0; s < 2; s++) {
+        clock_t start = clock();
+        int valid = count_votes(largeVotes, sizes[s], 12,
+                                count, &invalid);
+        clock_t end = clock();
+
+        printf("Benchmark: %d votes, valid=%d, invalid=%d, "
+               "time=%.6f seconds\n",
+               sizes[s], valid, invalid,
+               (double)(end - start) / CLOCKS_PER_SEC);
+    }
+
+    return 0;
+}
