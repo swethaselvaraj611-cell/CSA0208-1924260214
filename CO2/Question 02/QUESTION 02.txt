@@ -1,0 +1,36 @@
+#include <stdio.h> 
+int verification_calls = 0; 
+int verify_card(int id) 
+{ 
+    verification_calls++; 
+return id % 2 == 0; 
+} 
+int main(void) 
+{ 
+    int passengers = 1000; 
+    int senior, eligible, disability; 
+    int calls_first = 0, calls_last = 0; 
+ 
+    verification_calls = 0; 
+    for (int i = 0; i < passengers; i++) { 
+        senior = (i % 4 == 0); 
+        eligible = (i % 5 == 0); 
+        disability = (i % 10 == 0); 
+        if ((senior && eligible && verify_card(i)) || disability) { 
+        } 
+    } 
+    calls_first = verification_calls;  
+    verification_calls = 0; 
+    for (int i = 0; i < passengers; i++) { 
+         senior = (i % 4 == 0); 
+         eligible = (i % 5 == 0); 
+         disability = (i % 10 == 0); 
+         if ((verify_card(i) && senior && eligible) || disability) {  
+         }
+    } 
+    calls_last = verification_calls; 
+    printf("Passengers checked: %d\n", passengers); 
+    printf("Verification calls (cheap checks first): %d\n", calls_first); 
+    printf("Verification calls (verification first): %d\n", calls_last); 
+    return 0;
+}
