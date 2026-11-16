@@ -1,0 +1,47 @@
+#include <stdio.h>
+
+unsigned long checks_original;
+unsigned long checks_improved;
+
+int prime_original(unsigned long n)
+{
+    checks_original = 0;
+    if (n < 2) return 0;
+
+    for (unsigned long i = 2; i < n; i++) {
+        checks_original++;
+        if (n % i == 0) return 0;
+    }
+    return 1;
+}
+
+int prime_improved(unsigned long n)
+{
+    checks_improved = 0;
+    if (n < 2) return 0;
+
+    for (unsigned long i = 2; i <= n / i; i++) {
+        checks_improved++;
+        if (n % i == 0) return 0;
+    }
+    return 1;
+}
+
+int main(void)
+{
+    unsigned long values[] = {97, 100, 7919, 1000003};
+    int size = sizeof(values) / sizeof(values[0]);
+
+    printf("Number     Original checks   Improved checks\n");
+    for (int i = 0; i < size; i++) {
+        int a = prime_original(values[i]);
+        int b = prime_improved(values[i]);
+
+        printf("%-11lu %-17lu %lu\n",
+               values[i], checks_original, checks_improved);
+
+        if (a != b)
+            printf("Validation error for %lu\n", values[i]);
+    }
+    return 0;
+}
