@@ -1,0 +1,79 @@
+#include <stdio.h>
+#include <string.h>
+
+#define MAX_NAMES 500
+#define NAME_LEN 30
+
+int main(void)
+{
+    char names[MAX_NAMES][NAME_LEN];
+    char temp[NAME_LEN], key[NAME_LEN];
+    int n;
+
+    printf("Enter number of residents (1 to 500): ");
+    if (scanf("%d", &n) != 1 || n < 1 || n > MAX_NAMES)
+        return 1;
+    getchar(); /* consume newline after the number */
+
+    for (int i = 0; i < n; i++) {
+        printf("Name %d: ", i + 1);
+        if (fgets(names[i], NAME_LEN, stdin) == NULL)
+            return 1;
+        names[i][strcspn(names[i], "\n")] = '\0';
+    }
+
+    /* Insertion sort using strcmp and strcpy. */
+    for (int i = 1; i < n; i++) {
+        strcpy(temp, names[i]);
+        int j = i - 1;
+
+        while (j >= 0 && strcmp(names[j], temp) > 0) {
+            strcpy(names[j + 1], names[j]);
+            j--;
+        }
+        strcpy(names[j + 1], temp);
+    }
+
+    printf("\nSorted names:\n");
+    for (int i = 0; i < n; i++)
+        printf("%s\n", names[i]);
+
+    printf("\nDuplicate entries:\n");
+    int found_duplicate = 0;
+    for (int i = 1; i < n; i++) {
+        if (strcmp(names[i], names[i - 1]) == 0) {
+            printf("%s\n", names[i]);
+            found_duplicate = 1;
+        }
+    }
+    if (!found_duplicate) printf("None\n");
+
+    printf("\nEnter name to search: ");
+    if (fgets(key, NAME_LEN, stdin) == NULL)
+        return 1;
+    key[strcspn(key, "\n")] = '\0';
+
+    int low = 0, high = n - 1, position = -1, comparisons = 0;
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+        comparisons++;
+        int result = strcmp(key, names[mid]);
+
+        if (result == 0) {
+            position = mid;
+            break;
+        } else if (result < 0) {
+            high = mid - 1;
+        } else {
+            low = mid + 1;
+        }
+    }
+
+    if (position >= 0)
+        printf("Found at index %d; comparisons = %d\n",
+               position, comparisons);
+    else
+        printf("Name not found; comparisons = %d\n", comparisons);
+
+    return 0;
+}
