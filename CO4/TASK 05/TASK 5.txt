@@ -1,0 +1,47 @@
+/* File: token_demo.c */
+#include <stdio.h>
+
+int shared_token = 1000;    /* definition; extern in another file */
+
+int next_token(void)
+{
+    static int token = 1000;
+    return ++token;
+}
+
+int auto_token(void)
+{
+    int token = 1000;
+    return ++token;
+}
+
+int global_token(void)
+{
+    extern int shared_token;
+    return ++shared_token;
+}
+
+int main(void)
+{
+    int s1 = next_token(), s2 = next_token(), s3 = next_token();
+    int a1 = auto_token(), a2 = auto_token(), a3 = auto_token();
+
+    printf("static: %d %d %d\n", s1, s2, s3);
+    printf("auto:   %d %d %d\n", a1, a2, a3);
+
+    printf("global: %d %d %d\n",
+           global_token(), global_token(), global_token());
+
+    printf("register loop: ");
+    for (register int i = 1001; i <= 1003; i++)
+        printf("%d ", i);
+    printf("\n");
+    return 0;
+}
+
+/* Separate-file form:
+   token_global.c: int shared_token = 1000;
+   token_client.c: extern int shared_token;
+   The client increments shared_token using ++shared_token.
+   Compile and link both source files in the same program. */
+   
