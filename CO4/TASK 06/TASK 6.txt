@@ -1,0 +1,179 @@
+PSEUDOCODE:
+
+typedef struct { int day, month, year; } Date;
+typedef struct { int hour, minute; } Time;
+typedef struct { float price; Date expiry; } Packaged;
+typedef struct { float price; Time prepared; } Cooked;
+typedef struct { float price; int componentIds[3]; int componentCount; } Combo;
+
+typedef struct {
+    int id;
+    char name[30];
+    int type;            /* PACKAGED, COOKED or COMBO */
+    int stock;
+    union {
+        Packaged packaged;
+        Cooked cooked;
+        Combo combo;
+    } detail;
+} Item;
+
+typedef struct {
+    int itemId;
+    int quantity;
+    float revenue;
+} SalesSummary;
+
+int recordSale(Item items[], int itemCount,
+               SalesSummary sales[], int *saleCount,
+               int itemId, int quantity);
+void checkExpiry(const Item items[], int itemCount, Date today);
+void sortSalesByRevenue(SalesSummary sales[], int count);
+
+PROGRAM CODE:
+#include <stdio.h>
+#include <string.h>
+
+enum { PACKAGED, COOKED, COMBO };
+
+typedef struct { int day, month, year; } Date;
+typedef struct { int hour, minute; } Time;
+typedef struct { float price; Date expiry; } Packaged;
+typedef struct { float price; Time prepared; } Cooked;
+typedef struct {
+    float price;
+    int componentIds[3];
+    int componentCount;
+} Combo;
+
+typedef struct {
+    int id;
+    char name[30];
+    int type;
+    int stock;
+    union {
+        Packaged packaged;
+        Cooked cooked;
+        Combo combo;
+    } detail;
+} Item;
+
+typedef struct {
+    int itemId;
+    int quantity;
+    float revenue;
+} SalesSummary;
+
+float getPrice(const Item *item)
+{
+    switch (item->type) {
+        case PACKAGED: return item->detail.packaged.price;
+        case COOKED:   return item->detail.cooked.price;
+        case COMBO:    return item->detail.combo.price;
+        default:       return 0.0f;
+    }
+}
+
+int recordSale(Item items[], int itemCount,
+               SalesSummary sales[], int *saleCount,
+               int itemId, int quantity)
+{
+    int index = -1;
+    for (int i = 0; i < itemCount; i++)
+        if (items[i].id == itemId) { index = i; break; }
+
+    if (index == -1 || quantity <= 0 ||
+        quantity > items[index].stock)
+        return 0;
+
+    float amount = getPrice(&items[index]) * quantity;
+    items[index].stock -= quantity;
+
+    int s = -1;
+    for (int i = 0; i < *saleCount; i++)
+        if (sales[i].itemId == itemId) { s = i; break; }
+
+    if (s == -1) {
+        s = *saleCount;
+        sales[s].itemId = itemId;
+        sales[s].quantity = 0;
+        sales[s].revenue = 0.0f;
+        (*saleCount)++;
+    }
+    sales[s].quantity += quantity;
+    sales[s].revenue += amount;
+    return 1;
+}
+
+/* Simple ordinal date for this demonstration (same year only). */
+int dayNumber(Date d)
+{
+    static const int daysBeforeMonth[] =
+        {0,31,59,90,120,151,181,212,243,273,304,334};
+    return daysBeforeMonth[d.month - 1] + d.day;
+}
+
+void checkExpiry(const Item items[], int n, Date today)
+{
+    int now = dayNumber(today);
+    for (int i = 0; i < n; i++) {
+        if (items[i].type == PACKAGED) {
+            int left = dayNumber(items[i].detail.packaged.expiry) - now;
+            if (left >= 0 && left <= 2)
+                printf("WARNING: %s expires within %d day(s)\n",
+                       items[i].name, left);
+        }
+    }
+}
+
+void sortSalesByRevenue(SalesSummary sales[], int n)
+{
+    for (int i = 0; i < n - 1; i++) {
+        int best = i;
+        for (int j = i + 1; j < n; j++)
+            if (sales[j].revenue > sales[best].revenue)
+                best = j;
+        if (best != i) {
+            SalesSummary temp = sales[i];
+            sales[i] = sales[best];
+            sales[best] = temp;
+        }
+    }
+}
+
+int main(void)
+{
+    Item items[3] = {
+        {101, "Milk", PACKAGED, 5, {.packaged = {30.0f, {18,11,2026}}}},
+        {102, "Sandwich", COOKED, 4, {.cooked = {50.0f, {10,30}}}},
+        {103, "Combo Meal", COMBO, 3,
+         {.combo = {80.0f, {101,102,0}, 2}}}
+    };
+    SalesSummary sales[10];
+    int saleCount = 0;
+    Date today = {16, 11, 2026};
+
+    printf("Normal sale: ");
+    printf("%s\n", recordSale(items, 3, sales, &saleCount, 101, 2)
+           ? "accepted" : "rejected");
+
+    printf("Sale exceeding stock: ");
+    printf("%s\n", recordSale(items, 3, sales, &saleCount, 102, 8)
+           ? "accepted" : "rejected");
+
+    printf("Combo sale: ");
+    printf("%s\n", recordSale(items, 3, sales, &saleCount, 103, 1)
+           ? "accepted" : "rejected");
+
+    checkExpiry(items, 3, today);
+    sortSalesByRevenue(sales, saleCount);
+
+    printf("Daily summary (highest revenue first):\n");
+    for (int i = 0; i < saleCount; i++)
+        printf("Item %d quantity %d revenue Rs. %.2f\n",
+               sales[i].itemId, sales[i].quantity,
+               sales[i].revenue);
+
+    printf("Milk stock remaining: %d\n", items[0].stock);
+    return 0;
+}
