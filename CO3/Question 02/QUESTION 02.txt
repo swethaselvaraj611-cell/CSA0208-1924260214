@@ -1,0 +1,91 @@
+#include <stdio.h>
+#define N 8
+
+typedef struct {
+    long comparisons;
+    long moves;
+} Stats;
+
+void copy_array(const int src[], int dst[])
+{
+    for (int i = 0; i < N; i++) dst[i] = src[i];
+}
+
+void bubble_sort(int a[], Stats *s)
+{
+    s->comparisons = s->moves = 0;
+    for (int pass = 0; pass < N - 1; pass++) {
+        int swapped = 0;
+        for (int j = 0; j < N - 1 - pass; j++) {
+            s->comparisons++;
+            if (a[j] > a[j + 1]) {
+                int t = a[j]; a[j] = a[j + 1]; a[j + 1] = t;
+                s->moves++;
+                swapped = 1;
+            }
+        }
+        if (!swapped) break;
+    }
+}
+
+void selection_sort(int a[], Stats *s)
+{
+    s->comparisons = s->moves = 0;
+    for (int i = 0; i < N - 1; i++) {
+        int min = i;
+        for (int j = i + 1; j < N; j++) {
+            s->comparisons++;
+            if (a[j] < a[min]) min = j;
+        }
+        if (min != i) {
+            int t = a[i]; a[i] = a[min]; a[min] = t;
+            s->moves++;
+        }
+    }
+}
+
+void insertion_sort(int a[], Stats *s)
+{
+    s->comparisons = s->moves = 0;
+    for (int i = 1; i < N; i++) {
+        int key = a[i], j = i - 1;
+        while (j >= 0) {
+            s->comparisons++;
+            if (a[j] > key) {
+                a[j + 1] = a[j];
+                s->moves++;
+                j--;
+            } else break;
+        }
+        a[j + 1] = key;
+    }
+}
+
+void run_case(const char *name, const int input[])
+{
+    int a[N]; Stats s;
+    printf("\n%s\n", name);
+
+    copy_array(input, a); bubble_sort(a, &s);
+    printf("Bubble       comparisons=%ld swaps=%ld\n", s.comparisons, s.moves);
+
+    copy_array(input, a); selection_sort(a, &s);
+    printf("Selection  comparisons=%ld swaps=%ld\n", s.comparisons, s.moves);
+
+    copy_array(input, a); insertion_sort(a, &s);
+    printf("Insertion  comparisons=%ld shifts=%ld\n", s.comparisons, s.moves);
+}
+
+int main(void)
+{
+    int sorted[N]  = {10,20,30,40,50,60,70,80};
+    int nearly[N]  = {10,20,30,50,40,60,70,80};
+    int reverse[N] = {80,70,60,50,40,30,20,10};
+    int random[N]  = {40,10,70,20,80,30,60,50};
+
+    run_case("Already sorted", sorted);
+    run_case("Nearly sorted", nearly);
+    run_case("Reverse sorted", reverse);
+    run_case("Random order", random);
+    return 0;
+}
