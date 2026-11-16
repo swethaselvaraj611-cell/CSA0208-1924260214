@@ -1,0 +1,65 @@
+PSEUDOCODE:
+
+MERGE_DESCENDING(A, m, B, n, OUT)
+    i = 0; j = 0; k = 0
+    WHILE i < m AND j < n
+        IF A[i] >= B[j]
+            OUT[k] = A[i]
+            i = i + 1
+        ELSE
+            OUT[k] = B[j]
+            j = j + 1
+        k = k + 1
+    WHILE i < m
+        OUT[k] = A[i]
+        i = i + 1; k = k + 1
+    WHILE j < n
+        OUT[k] = B[j]
+        j = j + 1; k = k + 1
+    RETURN k
+
+PROGRAM CODE:
+
+#include <stdio.h>
+
+int merge(const int a[], int na, const int b[], int nb, int out[])
+{
+    int i = 0, j = 0, k = 0;
+
+    while (i < na && j < nb) {
+        if (a[i] >= b[j]) {
+            out[k++] = a[i++];
+        } else {
+            out[k++] = b[j++];
+        }
+    }
+
+    while (i < na) out[k++] = a[i++];
+    while (j < nb) out[k++] = b[j++];
+
+    return k;
+}
+
+int main(void)
+{
+    int campusA[] = {98, 91, 85, 72};
+    int campusB[] = {95, 91, 80};
+    int merged[7];
+
+    int n = merge(campusA, 4, campusB, 3, merged);
+
+    printf("Merged merit list: ");
+    for (int i = 0; i < n; i++)
+        printf("%d ", merged[i]);
+    printf("\n");
+
+    /* Test when one input list is empty. */
+    int empty_result[3];
+    int count = merge(NULL, 0, campusB, 3, empty_result);
+    printf("One-list-empty test: ");
+    for (int i = 0; i < count; i++)
+        printf("%d ", empty_result[i]);
+    printf("\n");
+
+    return 0;
+}
