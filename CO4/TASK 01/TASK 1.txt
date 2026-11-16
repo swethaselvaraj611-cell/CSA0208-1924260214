@@ -1,0 +1,61 @@
+#include <stdio.h>
+#include <string.h>
+
+#define MAX_PATIENTS 100
+
+typedef struct {
+    int systolic;
+    int diastolic;
+} BloodPressure;
+
+typedef struct {
+    int day;
+    int month;
+    int year;
+} Date;
+
+typedef struct {
+    char name[50];
+    int age;
+    char phone[11];        /* 10 digits + null character */
+    BloodPressure bp;
+    Date visitDate;
+} Patient;
+
+int addPatient(Patient patients[], int *count,
+               const Patient *newPatient)
+{
+    if (*count >= MAX_PATIENTS)
+        return 0;          /* register is full */
+
+    patients[*count] = *newPatient;
+    (*count)++;
+    return 1;
+}
+
+int main(void)
+{
+    Patient patients[MAX_PATIENTS];
+    int count = 0;
+
+    Patient p = {
+        "Anitha", 45, "9876543210",
+        {120, 80}, {16, 11, 2026}
+    };
+
+    if (addPatient(patients, &count, &p)) {
+        printf("Patient added successfully.\n");
+        printf("Name: %s, Age: %d, Phone: %s\n",
+               patients[0].name, patients[0].age,
+               patients[0].phone);
+        printf("BP: %d/%d, Visit: %02d/%02d/%04d\n",
+               patients[0].bp.systolic,
+               patients[0].bp.diastolic,
+               patients[0].visitDate.day,
+               patients[0].visitDate.month,
+               patients[0].visitDate.year);
+    } else {
+        printf("Patient register is full.\n");
+    }
+    return 0;
+}
