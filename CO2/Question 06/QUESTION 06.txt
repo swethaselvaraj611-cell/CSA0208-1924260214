@@ -1,0 +1,43 @@
+#include <stdio.h>
+
+int main(void)
+{
+    double balance = 10000.0;
+    const double rate = 0.02;
+    const double payment = 2000.0;
+    double total_interest = 0.0;
+    int month = 0;
+    const int limit = 360;
+
+    if (balance <= 0 || payment <= balance * rate) {
+        printf("Invalid repayment: payment must exceed monthly interest.\n");
+        return 0;
+    }
+
+    printf("Month Opening Balance Interest Payment Closing Balance\n");
+
+    while (balance > 0.005 && month < limit) {
+        double interest = balance * rate;
+        double due = balance + interest;
+        double actual_payment = (payment < due) ? payment : due;
+        double closing = due - actual_payment;
+
+        total_interest += interest;
+        month++;
+
+        if (closing < 0.005) closing = 0.0;
+
+        printf("%5d %15.2f %8.2f %7.2f %15.2f\n",
+               month, balance, interest, actual_payment, closing);
+
+        balance = closing;
+    }
+
+    if (balance <= 0.005)
+        printf("Loan repaid in %d months. Total interest = Rs. %.2f\n",
+               month, total_interest);
+    else
+        printf("Safety limit reached: outstanding balance = Rs. %.2f\n", balance);
+
+    return 0;
+}
