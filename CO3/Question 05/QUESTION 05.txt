@@ -1,0 +1,85 @@
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+
+/* Counts words separated by any whitespace. */
+int word_count(const char s[])
+{
+    int count = 0, inside = 0;
+
+    for (int i = 0; s[i] != '\0'; i++) {
+        if (isspace((unsigned char)s[i])) {
+            inside = 0;
+        } else if (!inside) {
+            count++;
+            inside = 1;
+        }
+    }
+    return count;
+}
+
+void to_upper_manual(char s[])
+{
+    for (int i = 0; s[i] != '\0'; i++)
+        s[i] = (char)toupper((unsigned char)s[i]);
+}
+
+void reverse_manual(char s[])
+{
+    int left = 0, right = (int)strlen(s) - 1;
+    while (left < right) {
+        char temp = s[left];
+        s[left] = s[right];
+        s[right] = temp;
+        left++;
+        right--;
+    }
+}
+
+/* Returns 1 if the string is a palindrome, ignoring case
+   and all non-letter characters. */
+int is_palindrome(const char s[])
+{
+    int left = 0, right = (int)strlen(s) - 1;
+
+    while (left < right) {
+        while (left < right && !isalpha((unsigned char)s[left]))
+            left++;
+        while (left < right && !isalpha((unsigned char)s[right]))
+            right--;
+
+        if (tolower((unsigned char)s[left]) !=
+            tolower((unsigned char)s[right]))
+            return 0;
+
+        left++;
+        right--;
+    }
+    return 1;
+}
+
+int main(void)
+{
+    char message[200] = "Meet at the library at 5 PM";
+    char upper[200], reversed[200];
+
+    strcpy(upper, message);
+    strcpy(reversed, message);
+
+    printf("Words: %d\n", word_count(message));
+    to_upper_manual(upper);
+    printf("Uppercase: %s\n", upper);
+
+    reverse_manual(reversed);
+    printf("Reversed: %s\n", reversed);
+
+    printf("Palindrome results: %d %d\n",
+           is_palindrome("Madam, I'm Adam"),
+           is_palindrome("Hello"));
+
+    printf("Tab-separated words: %d\n",
+           word_count("one\ttwo   three"));
+    printf("Empty message words: %d\n", word_count(""));
+
+    return 0;
+}
