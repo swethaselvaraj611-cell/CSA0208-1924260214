@@ -1,42 +1,58 @@
-#include <stdio.h> 
- 
-char grade_if(int marks) 
-{ 
-     if (marks < 0 || marks > 100) return '?'; 
-     if (marks >= 90) return 'S'; 
-     else if (marks >= 80) return 'A'; 
-     else if (marks >= 70) return 'B'; 
-     else if (marks >= 60) return 'C'; 
-     else if (marks >= 50) return 'D'; 
-     else return 'F'; 
-} 
- 
-char grade_switch(int marks) 
-{ 
-    if (marks < 0 || marks > 100) return '?'; 
- 
-    switch (marks / 10) { 
-        case 10: return 'S'; 
-        case 9: return 'S'; 
-        case 8: return 'A'; 
-        case 7: return 'B'; 
-        case 6: return 'C';  
-        case 5: return 'D'; 
-        default: return 'F'; 
-    } 
-} 
- 
-int main(void) 
-{ 
-    int marks[] = {100, 95, 83, 50, 49, -5, 101};
-    int n = sizeof(marks) / sizeof(marks[0]); 
- 
-    for (int i = 0; i < n; i++) 
-        printf("%d:%c ", marks[i], grade_if(marks[i])); 
-    printf("\n"); 
- 
-    for (int i = 0; i < n; i++) 
-        printf("%d:%c ", marks[i], grade_switch(marks[i])); 
-    printf("\n"); 
+#include <stdio.h>
+#define DISTRICTS 38
+#define MONTHS 12
+
+int main(void)
+{
+    double rain[DISTRICTS][MONTHS];
+    double annual[DISTRICTS] = {0};
+    double monthlyTotal[MONTHS] = {0};
+    double grandTotal = 0.0, maxRain = -1.0;
+    int maxDistrict = 0, maxMonth = 0;
+
+    printf("Enter rainfall (mm) for 38 districts, 12 months each:\n");
+
+    for (int i = 0; i < DISTRICTS; i++) {
+        printf("District %d: ", i + 1);
+        for (int j = 0; j < MONTHS; j++) {
+            if (scanf("%lf", &rain[i][j]) != 1 || rain[i][j] < 0) {
+                printf("Invalid rainfall input.\n");
+                return 1;
+            }
+
+            annual[i] += rain[i][j];
+            monthlyTotal[j] += rain[i][j];
+            grandTotal += rain[i][j];
+
+            if (rain[i][j] > maxRain) {
+                maxRain = rain[i][j];
+                maxDistrict = i;
+                maxMonth = j;
+            }
+        }
+    }
+
+    printf("\nANNUAL TOTAL BY DISTRICT\n");
+    for (int i = 0; i < DISTRICTS; i++)
+        printf("District %d: %.2f mm\n", i + 1, annual[i]);
+
+    printf("\nSTATE MONTHLY AVERAGES\n");
+    for (int j = 0; j < MONTHS; j++)
+        printf("Month %d: %.2f mm\n", j + 1,
+               monthlyTotal[j] / DISTRICTS);
+
+    printf("\nWettest district-month: District %d, Month %d (%.2f mm)\n",
+           maxDistrict + 1, maxMonth + 1, maxRain);
+
+    double stateAnnualAverage = grandTotal / DISTRICTS;
+    printf("State average annual rainfall: %.2f mm\n",
+           stateAnnualAverage);
+    printf("Districts below 60%% of state annual average:\n");
+
+    for (int i = 0; i < DISTRICTS; i++) {
+        if (annual[i] < 0.60 * stateAnnualAverage)
+            printf("District %d: %.2f mm\n", i + 1, annual[i]);
+    }
+
     return 0;
 }
