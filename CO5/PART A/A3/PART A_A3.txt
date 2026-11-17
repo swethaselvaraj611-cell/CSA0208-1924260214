@@ -1,0 +1,30 @@
+#include <stdio.h>
+#include <string.h>
+
+#define GROUPS 8
+const char *groupNames[GROUPS] = 
+    {"O+","O-","A+","A-","B+","B-","AB+","AB-"};
+
+/* Return address of the lowest-stock element in caller-owned array. */
+int *lowest_stock(int stock[], int n)
+{
+    if (stock == NULL || n <= 0) return NULL;
+    int *lowest = &stock[0];
+    for (int i = 1; i < n; ++i)
+        if (stock[i] < *lowest) lowest = &stock[i];
+    return lowest;
+}
+
+int main(void)
+{
+    int stock[GROUPS] = {40,25,30,12,18,8,10,5};
+    int *p = stock;
+    printf("p + 3 points to index 3, value = %d\n", *(p + 3));
+    printf("p[3] = %d\n", p[3]);
+    printf("lowest stock = %d\n", *lowest_stock(stock,GROUPS));
+    printf("lowest element index = %td\n", lowest_stock(stock,GROUPS)-stock);
+    printf("first value before *p++ = %d\n", *p);
+    printf("value produced by *p++ = %d\n", *p++);
+    printf("p now points to next element = %d\n", *p);
+    return 0;
+}
