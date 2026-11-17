@@ -1,0 +1,125 @@
+#include <stdio.h>
+#include <string.h>
+
+#define MAX_DONORS 1000
+#define GROUP_LEN 4
+
+typedef struct {
+    int day, month, year;
+} Date;
+
+typedef struct {
+    int id;
+    char name[50];
+    char group[GROUP_LEN];
+    int age;
+    char phone[16];
+    Date lastDonation;
+} Donor;
+
+typedef struct {
+    char group[GROUP_LEN];
+    int units;
+} Stock;
+
+int registerDonor(Donor donors[], int *count, const Donor *newDonor);
+int isValidGroup(const char *group);
+int isEligible(const Donor *d, const char *group, Date today);
+int findEligible(const Donor donors[], int count, const char *group,
+                 Date today, int *youngestId);
+int updateStock(Stock stock[], int n, const char *g, int delta);
+int saveDonors(const char *path, const Donor donors[], int count);
+int loadDonors(const char *path, Donor donors[], int capacity, int *count);
+int saveStock(const char *path, const Stock stock[], int count);
+int loadStock(const char *path, Stock stock[], int capacity, int *count);
+
+int registerDonor(Donor donors[], int *count, const Donor *d)
+{
+    if (d == NULL || count == NULL || *count >= MAX_DONORS ||
+        !isValidGroup(d->group) || d->age < 18)
+        return 0;
+    for (int i = 0; i < *count; ++i)
+        if (donors[i].id == d->id) return 0;
+    donors[*count] = *d;
+    ++(*count);
+    return 1;
+}
+
+int isValidGroup(const char *g)
+{
+    const char *valid[] = {"O+","O-","A+","A-","B+","B-","AB+","AB-"};
+    for (int i = 0; i < 8; ++i)
+        if (strcmp(g, valid[i]) == 0) return 1;
+    return 0;
+}
+
+/* Educational interval check: assumes dates have already been converted
+   to a validated day number by the caller. */
+int isEligible(const Donor *d, const char *group, Date today)
+{
+    (void)today; /* Replace with validated calendar-day calculation. */
+    return d != NULL && strcmp(d->group, group) == 0 && d->age >= 18;
+}
+
+int findEligible(const Donor d[], int n, const char *g,
+                 Date today, int *youngestId)
+{
+    int eligible = 0, youngestAge = 1000;
+    if (youngestId) *youngestId = -1;
+    for (int i = 0; i < n; ++i) {
+        if (isEligible(&d[i], g, today)) {
+            ++eligible;
+            if (d[i].age < youngestAge) {
+                youngestAge = d[i].age;
+                if (youngestId) *youngestId = d[i].id;
+            }
+        }
+    }
+    return eligible;
+}
+
+int updateStock(Stock s[], int n, const char *g, int delta)
+{
+    for (int i = 0; i < n; ++i) {
+        if (strcmp(s[i].group, g) == 0) {
+            if (s[i].units + delta < 0) return 0;
+            s[i].units += delta;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int saveDonors(const char *path, const Donor d[], int n)
+{
+    FILE *fp = fopen(path, "w");
+    if (!fp) return 0;
+    for (int i = 0; i < n; ++i) {
+        if (fprintf(fp, "%d|%s|%s|%d|%s|%d|%d|%d\n",
+            d[i].id, d[i].name, d[i].group, d[i].age, d[i].phone,
+            d[i].lastDonation.day, d[i].lastDonation.month,
+            d[i].lastDonation.year) < 0) {
+            fclose(fp); return 0;
+        }
+    }
+    return fclose(fp) == 0;
+}
+
+int main(void)
+{
+    Donor donors[MAX_DONORS] = {0};
+    int count = 0, youngest = -1;
+    Date today = {13,11,2026};
+    Donor d = {1001,"Anitha","O+",25,"9876543210",{1,8,2026}};
+    Stock stock[8] = {{"O+",40},{"O-",25},{"A+",30},{"A-",12},
+                      {"B+",18},{"B-",8},{"AB+",10},{"AB-",5}};
+
+    if (registerDonor(donors,&count,&d))
+        printf("Donor registered: %d\n",d.id);
+    printf("Eligible count: %d\n",
+           findEligible(donors,count,"O+",today,&youngest));
+    printf("Youngest eligible donor ID: %d\n",youngest);
+    printf("Donation stock update: %s\n",
+           updateStock(stock,8,"O+",2) ? "success" : "failed");
+    return 0;
+}
